@@ -3,14 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Musical</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="songs.js"></script>
-    <script src="script.js" defer></script>
+    <title>Bingo Musical 🍄</title>
+    <!-- Enlace a la fuente pixelada para estilo Mario Bros -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Iconos de Font Awesome para el punto rojo al marcar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variables CSS para los colores de Mario */
+        :root {
+            --mario-blue: #6495ED; /* Azul cielo */
+            --mario-green: #7CFC00; /* Verde césped */
+            --mario-red: #E74C3C; /* Rojo Mario */
+            --mario-brown: #8B4513; /* Marrón bloques */
+            --mario-yellow: #F1C40F; /* Amarillo estrella/moneda */
+            --dark-blue: #3498DB;
+            --dark-green: #27AE60;
+            --gray-light: #ECF0F1;
+            --gray-dark: #BDC3C7;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive; /* Fuente pixelada */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, var(--mario-blue) 0%, var(--mario-blue) 50%, var(--mario-green) 50%, var(--mario-green) 100%);
+            color: var(--mario-brown);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            overflow-x: hidden; /* Evita el scroll horizontal */
+        }
+
+        h1 {
+            color: var(--mario-red);
+            font-size: 2.5em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Contenedor principal del juego */
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            width: 90%; /* Ancho responsivo */
+            max-width: 800px; /* Ancho máximo para escritorio */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Estilo del botón "Generar cartón" */
+        #generarCarton {
+            background-color: var(--mario-red);
+            color: var(--mario-yellow);
+            border: 5px solid var(--dark-blue);
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 5px 0 var(--dark-blue);
+            transition: all 0.1s ease-in-out;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        #generarCarton:active {
+            box-shadow: 0 1px 0 var(--dark-blue);
+            transform: translateY(4px);
+        }
+
+        /* Contenedor de la cuadrícula del bingo */
+        #contenedorBingo {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5 columnas iguales */
+            gap: 5px; /* Espacio entre las celdas */
+            width: 100%;
+            border: 5px solid var(--mario-brown);
+            border-radius: 10px;
+            padding: 5px;
+            background-color: var(--gray-dark);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* Estilo de cada celda del bingo */
+        .celdaBingo {
+            background-color: var(--mario-yellow); /* Color de bloque */
+            border: 3px solid var(--mario-brown);
+            padding: 5px;
+            text-align: center;
+            font-size: 0.8em; /* Ajuste para que quepa texto en móviles */
+            min-height: 70px; /* Altura mínima de las celdas */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-word; /* Para que las palabras largas se rompan */
+            line-height: 1.2;
+            transition: background-color 0.2s ease;
+        }
+
+        .celdaBingo:hover {
+            background-color: var(--dark-blue);
+            color: var(--gray-light);
+        }
+
+        /* Estilo para la celda marcada */
+        .celdaBingo.marcada {
+            background-color: var(--mario-red); /* Rojo de Mario */
+            color: var(--gray-light);
+            text-decoration: line-through;
+            font-style: italic;
+        }
+
+        /* Icono de Font Awesome para el punto rojo en el centro */
+        .celdaBingo.marcada::before {
+            content: "\f058"; /* Icono de círculo con check */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--mario-yellow); /* Color amarillo para el check */
+            font-size: 2.5em; /* Tamaño del icono */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+            z-index: 1; /* Asegura que el icono esté encima del texto */
+        }
+        
+        .celdaBingo.marcada span {
+            position: relative; /* Asegura que el texto esté por encima o se vea */
+            z-index: 2;
+        }
+
+        /* Responsividad para pantallas pequeñas (móviles) */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+                margin-top: 20px;
+            }
+
+            #generarCarton {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            .celdaBingo {
+                font-size: 0.65em; /* Más pequeño para que quepa en móviles */
+                min-height: 60px;
+            }
+
+            .celdaBingo.marcada::before {
+                font-size: 1.8em; /* Ajuste de tamaño del icono para móviles */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .celdaBingo {
+                font-size: 0.6em;
+                min-height: 50px;
+            }
+            .celdaBingo.marcada::before {
+                font-size: 1.5em;
+            }
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Bingo Musical 🎵</h1>
-    <button id="generate">Generar Cartón</button>
-    <div id="bingo-card"></div>
+    <h1>Bingo Musical 🍄</h1>
+
+    <div class="game-container">
+        <button id="generarCarton">Generar Cartón</button>
+        <div id="contenedorBingo">
+            <!-- Las celdas del bingo se generarán aquí con JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const botonGenerar = document.getElementById('generarCarton');
+            const contenedorBingo = document.getElementById('contenedorBingo');
+
+            // ⚠️ IMPORTANTE: Aquí debes añadir los títulos de tus canciones de YouTube Music.
+            // Asegúrate de tener al menos 25 canciones para un cartón completo y único.
+            const cancionesDisponibles = [
+                "Super Mario Bros. Theme",
+                "The Legend of Zelda - Main Theme",
+                "Tetris Theme (A-Type)",
+                "Pokémon Red/Blue - Main Theme",
+                "Kirby's Dream Land - Green Greens",
+                "Donkey Kong Country - Aquatic Ambience",
+                "Sonic the Hedgehog - Green Hill Zone",
+                "Mega Man 2 - Dr. Wily's Castle",
+                "Castlevania - Vampire Killer",
+                "Final Fantasy VII - One-Winged Angel",
+                "Street Fighter II - Guile's Theme",
+                "Mario Kart 64 - Rainbow Road",
+                "Undertale - Megalovania",
+                "Cuphead - Floral Fury",
+                "Kingdom Hearts - Dearly Beloved",
+                "Persona 5 - Last Surprise",
+                "Minecraft - Sweden",
+                "Doom - E1M1",
+                "Halo - Main Theme",
+                "Zelda Ocarina of Time - Gerudo Valley",
+                "The Elder Scrolls V: Skyrim - Dragonborn",
+                "Garry's Mod - Main Theme",
+                "Portal 2 - Still Alive",
+                "Red Dead Redemption 2 - The Housebuilding Song",
+                "God of War - Main Theme",
+                "Among Us - Main Theme",
+                "Stardew Valley - Spring (The Valley Comes Alive)",
+                "Terraria - Overworld Day",
+                "Celeste - Resurrections",
+                "Ori and the Blind Forest - Main Theme",
+                "Subnautica - Seamoth",
+                "Outer Wilds - Travelers",
+                "Hollow Knight - City of Tears",
+                "Risk of Rain 2 - Through New Lands",
+                "Factorio - Main Theme",
+                "Death Stranding - Ludens",
+                "Animal Crossing - New Horizons Theme",
+                "Smash Bros. Melee - Fountain of Dreams",
+                "Bloodborne - Cleric Beast",
+                "Undertale - Spider Dance",
+                "Overwatch - Main Theme",
+                "Fortnite - Main Theme",
+                "PUBG - Main Theme",
+                "Call of Duty - Main Theme",
+                "Grand Theft Auto V - Welcome To Los Santos",
+                "Cyberpunk 2077 - The Rebel Path",
+                "The Last of Us - Main Theme",
+                "BioShock - Main Theme",
+                "Dishonored - Drunken Whaler",
+                "Genshin Impact - Main Theme"
+                // ¡Añade más canciones de tu playlist aquí!
+            ];
+
+            // Función para mezclar un array (Algoritmo Fisher-Yates)
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]]; // Intercambio
+                }
+                return array;
+            }
+
+            // Función para generar el cartón de bingo
+            function generarCarton() {
+                // Limpiar cualquier cartón anterior
+                contenedorBingo.innerHTML = '';
+                
+                // Mezclar las canciones disponibles
+                const cancionesMezcladas = shuffleArray([...cancionesDisponibles]); // Crea una copia para no modificar el original
+
+                // Seleccionar las primeras 25 canciones para el cartón (o menos si no hay suficientes)
+                const cancionesParaCarton = cancionesMezcladas.slice(0, 25);
+
+                // Si no hay suficientes canciones, muestra un mensaje
+                if (cancionesParaCarton.length < 25) {
+                    contenedorBingo.innerHTML = `<p style="text-align:center; color: var(--mario-red);">¡Necesitas al menos 25 canciones en tu lista para un cartón completo!</p>`;
+                    return;
+                }
+
+                // Generar las 25 celdas (5x5)
+                for (let i = 0; i < 25; i++) {
+                    const celda = document.createElement('div');
+                    celda.classList.add('celdaBingo');
+                    // Envuelve el texto en un span para un mejor control del z-index con el icono
+                    const textoSpan = document.createElement('span');
+                    textoSpan.textContent = cancionesParaCarton[i];
+                    celda.appendChild(textoSpan);
+                    
+                    // Añadir evento para marcar/desmarcar
+                    celda.addEventListener('click', () => {
+                        celda.classList.toggle('marcada');
+                    });
+
+                    contenedorBingo.appendChild(celda);
+                }
+            }
+
+            // Event listener para el botón
+            botonGenerar.addEventListener('click', generarCarton);
+
+            // Generar un cartón inicial al cargar la página
+            generarCarton();
+        });
+    </script>
 </body>
 </html>
